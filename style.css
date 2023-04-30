@@ -1,0 +1,31 @@
+body {
+    height: 100vh;
+    margin: 0;
+    background-color: grey;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.grid {
+	width: 760px;
+	height: 840px;
+    background-color: darkblue;
+	border: solid black 1px;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.grid div {
+	width: 40px;
+	height: 40px;
+}
+
+.invader {
+	background-color: white;
+	border-radius: 10px;
+}
+
+.player {
+    background-color: red;
+}
