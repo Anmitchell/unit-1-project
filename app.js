@@ -17,8 +17,6 @@ class Player {
       y: 0
     }
 
-    this.rotation = 0
-
     // Image for player icon
     const image = new Image() // image object from javascript API
     image.src = 'img/25129-4-spaceship-file.png'; // image used
@@ -63,7 +61,32 @@ class Player {
   }
 }
 
-/*------Player Controls For Moving------*/
+/*------Creating Projectile------*/
+
+class Projectile {
+  constructor({position, velocity}) {
+    this.position = position
+    this.velocity = velocity
+    this.radius = 3
+  }
+
+  render() {
+    ctx.beginPath() // starting point of arc
+    ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2) // Creates a circle using arc method in canvas
+    ctx.fillStyle = 'white'
+    ctx.fill()
+    ctx.closePath() // ending point of arc
+  }
+
+  update() {
+    this.render()
+    this.position.x += this.velocity.x
+    this.position.y += this.velocity.y
+  }
+}
+
+/*------Player Controls For Moving and Shooting------*/
+const projectiles = []
 
 // Used to monitor keys used for player controls and give smoother
 // control when moving left to right
@@ -79,6 +102,8 @@ const keys = {
   }
 }
 
+/*------Event Listeners------*/
+
 addEventListener('keydown', ({key}) => { // {key} === event.key
   const spacebar = ' '
   switch (key) {
@@ -89,7 +114,19 @@ addEventListener('keydown', ({key}) => { // {key} === event.key
       keys.ArrowRight.pressed = true
       break
     case spacebar:
-      console.log('spacebar') // player will shoot here
+      projectiles.push(
+        new Projectile({
+          position: {
+            x: player.position.x + player.width / 2,
+            y: player.position.y
+          },
+          velocity: {
+            x: 0,
+            y: -4
+          }
+        })
+      )
+      //console.log(projectiles)
   }
 })
 
@@ -103,21 +140,39 @@ addEventListener('keyup', ({key}) => { // {key} === event.key
       keys.ArrowRight.pressed = false
       break
     case spacebar:
-      console.log('spacebar') // player will shoot here
+      //console.log('space')
+      break
   }
 })
 
-/*------Rendering Player on Webpage------*/
+/*------Rendering Player and Projectile on Webpage------*/
 const player = new Player()
 
 // Loop to render player
 function animate() {
   requestAnimationFrame(animate) // loop animate function
 
-  // Default Background color for image
+  // Default Background color for player image
   ctx.fillStyle = 'black'
-  // 
   ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+  // render player and position in canvas
+  player.update()
+
+  // render projectile and its position on canvas
+  projectiles.forEach((projectile, index) => {
+    // if bottom of projectile is less than or equal to top of screen
+    // remove projectile out of array at the top of screen
+    if (projectile.position.y + projectile.radius <= 0) {
+      // used to prevent flashing due to splicing projectiles array
+      setTimeout(() => {
+        projectiles.splice(index, 1)
+      }, 0)
+    }
+    else {
+      projectile.update()
+    }
+  })
 
   // Bound Checking and Moving player
   const leftEdge = 0;
@@ -135,8 +190,6 @@ function animate() {
   else {
     player.velocity.x = 0
   }
-
-  player.update()
 }
 
 animate()
@@ -147,5 +200,12 @@ animate()
   * How can I get image to load with DOM content in a cleaner way?
   * How to use CSS animation to rotate player to seemingly tilt when shooting
   * How to remove image and place a CSS styled element with animations in its place
-  * 
+  * How to set up invaders to bounce diagnolly across screen
+  * How to add a boss battle
+  * How to set up barriers to take cover from
+  * How to add power ups and different gun shooting mechanics
+  * How to add a melee feature
+  * How to add sound effects and music
+  * How to make player move in all 4 directions
+  * Change player projectile from a circle to a line instead
 */
