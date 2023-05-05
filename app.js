@@ -85,8 +85,100 @@ class Projectile {
   }
 }
 
-/*------Player Controls For Moving and Shooting------*/
+/*------Creating Invaders And Setting Position------*/
+
+class Invader {
+  constructor({position}) {
+    this.velocity = {
+      x: 0,
+      y: 0
+    }
+
+    // Image for invader icon
+    const image = new Image()
+    image.src = 'img/space-invaders-color-version-space-invader-dark-blue-icon-png-icon.jpg';
+
+    image.onload = () => { //
+      const scale = .10 // multiplier for scaling
+      this.image = image
+      this.width = image.width * scale 
+      this.height = image.height * scale
+      // Place Invader towards top of canvas
+      this.position = {
+        x: position.x,
+        y: position.y
+      }
+    }
+  }
+
+  // render image of player on canvas
+  render() {
+    ctx.drawImage( // draws image from instance of image object
+      this.image, 
+      this.position.x, 
+      this.position.y, 
+      this.width, 
+      this.height
+    )
+  }
+
+  update({velocity}) {
+    if (this.image) {
+      this.render()
+      this.position.x += velocity.x
+      this.position.y += velocity.y
+    }
+  }
+}
+
+/*------Creating A Grid of Invaders------*/
+
+class Grid {
+  constructor() {
+    this.position = {
+      x: 0,
+      y:0
+    }
+    this.velocity = {
+      x: 3,
+      y: 0
+    }
+    this.invaders = [] // storing invaders in grid array
+
+    // Creating rows and columns of invaders
+    const columns = 7
+    const rows = 4
+
+    this.width = columns * 70
+
+    for (let col = 0; col < columns; col++) {
+      for (let row = 0; row < rows; row++) {
+        this.invaders.push(new Invader({
+          position: {
+            x: col * 70,
+            y: row * 70
+          }
+        }))
+      }
+    }
+  }
+
+  update() {
+    this.position.x += this.velocity.x
+    this.position.y += this.velocity.y
+    this.velocity.y = 0
+
+    if (this.position.x + this.width >= canvas.width || this.position.x <= 0) {
+      this.velocity.x = -this.velocity.x
+      this.velocity.y = 70
+    }
+  }
+}
+
+/*------Constants------*/
 const projectiles = []
+const player = new Player()
+const grids = [new Grid()]
 
 // Used to monitor keys used for player controls and give smoother
 // control when moving left to right
@@ -102,6 +194,7 @@ const keys = {
   }
 }
 
+/*------Player Controls For Moving and Shooting------*/
 /*------Event Listeners------*/
 
 addEventListener('keydown', ({key}) => { // {key} === event.key
@@ -146,7 +239,6 @@ addEventListener('keyup', ({key}) => { // {key} === event.key
 })
 
 /*------Rendering Player and Projectile on Webpage------*/
-const player = new Player()
 
 // Loop to render player
 function animate() {
@@ -174,6 +266,14 @@ function animate() {
     }
   })
 
+  // Render grids and and invaders within grids
+  grids.forEach((grid) => {
+    grid.update()
+    grid.invaders.forEach(invader => {
+      invader.update({velocity: grid.velocity})
+    })
+  })
+
   // Bound Checking and Moving player
   const leftEdge = 0;
   const rightEdge = canvas.width
@@ -191,7 +291,7 @@ function animate() {
     player.velocity.x = 0
   }
 }
-
+// Run Game
 animate()
 
 /*
