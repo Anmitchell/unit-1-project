@@ -61,7 +61,7 @@ class Player {
   }
 }
 
-/*------Creating Projectile------*/
+/*------Creating Player Projectile------*/
 
 class Projectile {
   constructor({position, velocity}) {
@@ -146,17 +146,19 @@ class Grid {
     this.invaders = [] // storing invaders in grid array
 
     // Creating rows and columns of invaders
+    // Total invaders in grid === cols * rows
     const columns = 7
     const rows = 4
+    const spaceBetweenGrid = 70 // pixels of space between grids
 
-    this.width = columns * 70
-
+    this.width = columns * spaceBetweenGrid
+    
     for (let col = 0; col < columns; col++) {
       for (let row = 0; row < rows; row++) {
         this.invaders.push(new Invader({
           position: {
-            x: col * 70,
-            y: row * 70
+            x: col * spaceBetweenGrid,
+            y: row * spaceBetweenGrid
           }
         }))
       }
@@ -166,7 +168,7 @@ class Grid {
   update() {
     this.position.x += this.velocity.x
     this.position.y += this.velocity.y
-    this.velocity.y = 0
+    this.velocity.y = 0 // prevents grid from moving vertically on every frame
 
     if (this.position.x + this.width >= canvas.width || this.position.x <= 0) {
       this.velocity.x = -this.velocity.x
@@ -178,7 +180,7 @@ class Grid {
 /*------Constants------*/
 const projectiles = []
 const player = new Player()
-const grids = [new Grid()]
+const grid = new Grid() // grids of invaders
 
 // Used to monitor keys used for player controls and give smoother
 // control when moving left to right
@@ -210,7 +212,8 @@ addEventListener('keydown', ({key}) => { // {key} === event.key
       projectiles.push(
         new Projectile({
           position: {
-            x: player.position.x + player.width / 2,
+            // Player projectile start from the top center of the image
+            x: player.position.x + player.width / 2, 
             y: player.position.y
           },
           velocity: {
@@ -219,7 +222,6 @@ addEventListener('keydown', ({key}) => { // {key} === event.key
           }
         })
       )
-      //console.log(projectiles)
   }
 })
 
@@ -233,7 +235,6 @@ addEventListener('keyup', ({key}) => { // {key} === event.key
       keys.ArrowRight.pressed = false
       break
     case spacebar:
-      //console.log('space')
       break
   }
 })
@@ -251,41 +252,77 @@ function animate() {
   // render player and position in canvas
   player.update()
 
+  /*------Handling projectile Collistions------*/
+
   // render projectile and its position on canvas
   projectiles.forEach((projectile, index) => {
-    // if bottom of projectile is less than or equal to top of screen
-    // remove projectile out of array at the top of screen
+    // if the top of the projectile moves past the canvas delete projectile from array
     if (projectile.position.y + projectile.radius <= 0) {
-      // used to prevent flashing due to splicing projectiles array
+
+      // setTimeout used to prevent flashing due to splicing projectiles array
       setTimeout(() => {
         projectiles.splice(index, 1)
       }, 0)
     }
     else {
-      projectile.update()
+      projectile.update() // 
     }
   })
 
-  // Render grids and and invaders within grids
-  grids.forEach((grid) => {
-    grid.update()
-    grid.invaders.forEach(invader => {
-      invader.update({velocity: grid.velocity})
+  /*------Rendering Grid Of Invaders------*/
+  grid.update()
+
+  grid.invaders.forEach((invader, invIndex) => {
+    invader.update({velocity: grid.velocity}) // grid velocity is applied to each invader's velocity
+
+    projectiles.forEach((projectile, projIndex) => {
+      if (
+        // if top of projectile is less than or equal to the bottom of invader and
+        // right side of projectile is greater than or equal to invader left hand side and
+        // left side of projectile is less than or equal to invader right side
+        projectile.position.y - projectile.radius <= invader.position.y + invader.height &&
+        projectile.position.x + projectile.radius >= invader.position.x &&
+        projectile.position.x - projectile.radius <= invader.position.x + invader.width 
+        ) {
+          setTimeout(() => {
+            const containsInvader = grid.invaders.find(
+              (tempInv) => tempInv === invader
+            )
+            const containsProjectile = projectiles.find(
+              (tempProj) => tempProj === projectile
+            )
+            // remove invaders and projectiles
+            if (containsInvader && containsProjectile) { // checks to see if invaders and projectiles gone used exist at the current index in arrays
+            grid.invaders.splice(invIndex, 1)
+            projectiles.splice(projIndex, 1)
+            }
+
+            // re-adjusting grid when destroying invaders
+            if (grid.invaders.length > 0) {
+              const firstInvader = grid.invaders[0]
+              const lastInvader = grid.invaders[grid.invaders.length - 1]
+              grid.width = lastInvader.position.x - firstInvader.position.x + lastInvader.width
+              grid.position.x = firstInvader.position.x
+              }
+              else {
+                grids.splice(gridIndex, 1)
+              }
+          }, 0)
+        }
     })
+
   })
 
-  // Bound Checking and Moving player
+  // Bound Checking and Moving player within canvas and around enemies
   const leftEdge = 0;
   const rightEdge = canvas.width
   const speed = 4
 
   if(keys.ArrowLeft.pressed && player.position.x > leftEdge) {
     player.velocity.x = speed * -1 // left speed -
-    // rotate player here
   } 
   else if (keys.ArrowRight.pressed && player.position.x + player.width < rightEdge){
     player.velocity.x = speed // right speed +
-    // rotate player here
   }
   else {
     player.velocity.x = 0
@@ -293,19 +330,3 @@ function animate() {
 }
 // Run Game
 animate()
-
-/*
-  Notes:
-  * Find a way to optimise and clean code a bit better
-  * How can I get image to load with DOM content in a cleaner way?
-  * How to use CSS animation to rotate player to seemingly tilt when shooting
-  * How to remove image and place a CSS styled element with animations in its place
-  * How to set up invaders to bounce diagnolly across screen
-  * How to add a boss battle
-  * How to set up barriers to take cover from
-  * How to add power ups and different gun shooting mechanics
-  * How to add a melee feature
-  * How to add sound effects and music
-  * How to make player move in all 4 directions
-  * Change player projectile from a circle to a line instead
-*/
