@@ -1,8 +1,18 @@
+/*------Cached Elements------*/
 const canvas = document.querySelector('canvas')
 const ctx = canvas.getContext('2d') // api object
 
 canvas.width = innerWidth  // window.innerWidth
 canvas.height = innerHeight // window.innerHeight
+
+const scoreEl = document.getElementById('score')
+const resetBtn = document.getElementById('reset')
+const playerShootAudio = new Audio('audio/mixkit-sci-fi-battle-laser-shots-2783.wav')
+playerShootAudio.playbackRate = 16.0
+const invaderDestroyedAudio = new Audio('audio/76H365G-explosion.mp3')
+invaderDestroyedAudio.playbackRate = 16.0
+
+const gameOverModal = document.querySelector('div')
 
 /*------Creating Player and Setting Position------*/
 class Player {
@@ -94,6 +104,8 @@ class Invader {
       y: 0
     }
 
+    //const invaderImage = document.getElementsByClassName('.space-invader-2')
+
     // Image for invader icon
     const image = new Image()
     image.src = 'img/space-invaders-color-version-space-invader-dark-blue-icon-png-icon.jpg';
@@ -127,6 +139,16 @@ class Invader {
       this.render()
       this.position.x += velocity.x
       this.position.y += velocity.y
+
+      if ( 
+        (this.position.y + this.height) - 70 >= player.position.y &&
+        this.position.x + this.width >= player.position.x &&
+        this.position.x <= player.position.x + player.width
+      )
+      {
+       gameOver = true // ends game
+       gameOverModal.style.display = 'block'
+      }
     }
   }
 }
@@ -149,16 +171,16 @@ class Grid {
     // Total invaders in grid === cols * rows
     const columns = 7
     const rows = 4
-    const spaceBetweenGrid = 70 // pixels of space between grids
+    const spaceBetweenInvaders = 70 // pixels of space between grids
 
-    this.width = columns * spaceBetweenGrid
+    this.width = columns * spaceBetweenInvaders
     
     for (let col = 0; col < columns; col++) {
       for (let row = 0; row < rows; row++) {
         this.invaders.push(new Invader({
           position: {
-            x: col * spaceBetweenGrid,
-            y: row * spaceBetweenGrid
+            x: col * spaceBetweenInvaders,
+            y: row * spaceBetweenInvaders
           }
         }))
       }
@@ -177,10 +199,27 @@ class Grid {
   }
 }
 
+class InvaderProjectile {
+  constructor() {
+    this.position = {
+      x: 0,
+      y: 0
+    }
+    this.velocity = {
+      x: 0,
+      y: 0
+    }
+
+    this.projectiles = []
+  }
+}
+
 /*------Constants------*/
 const projectiles = []
 const player = new Player()
-const grid = new Grid() // grids of invaders
+const grid = new Grid()
+let gameOver = false
+let score = 0
 
 // Used to monitor keys used for player controls and give smoother
 // control when moving left to right
@@ -197,8 +236,6 @@ const keys = {
 }
 
 /*------Player Controls For Moving and Shooting------*/
-/*------Event Listeners------*/
-
 addEventListener('keydown', ({key}) => { // {key} === event.key
   const spacebar = ' '
   switch (key) {
@@ -222,6 +259,7 @@ addEventListener('keydown', ({key}) => { // {key} === event.key
           }
         })
       )
+      playerShootAudio.play()
   }
 })
 
@@ -245,6 +283,8 @@ addEventListener('keyup', ({key}) => { // {key} === event.key
 function animate() {
   requestAnimationFrame(animate) // loop animate function
 
+  if (gameOver) return // Breaks out of animation loop
+
   // Default Background color for player image
   ctx.fillStyle = 'black'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
@@ -252,7 +292,7 @@ function animate() {
   // render player and position in canvas
   player.update()
 
-  /*------Handling projectile Collistions------*/
+  /*------Handling projectile Collistions Outside Canvas------*/
 
   // render projectile and its position on canvas
   projectiles.forEach((projectile, index) => {
@@ -282,27 +322,31 @@ function animate() {
         // left side of projectile is less than or equal to invader right side
         projectile.position.y - projectile.radius <= invader.position.y + invader.height &&
         projectile.position.x + projectile.radius >= invader.position.x &&
-        projectile.position.x - projectile.radius <= invader.position.x + invader.width 
+        projectile.position.x - projectile.radius <= invader.position.x + invader.width
         ) {
-          setTimeout(() => {
+          setTimeout(() => { // helps to remove flashing when splicing
             const containsInvader = grid.invaders.find(
               (tempInv) => tempInv === invader
             )
             const containsProjectile = projectiles.find(
               (tempProj) => tempProj === projectile
             )
+
             // remove invaders and projectiles
             if (containsInvader && containsProjectile) { // checks to see if invaders and projectiles gone used exist at the current index in arrays
-            grid.invaders.splice(invIndex, 1)
-            projectiles.splice(projIndex, 1)
+              //score += 1000
+              //scoreEl.innerHTML = score
+              grid.invaders.splice(invIndex, 1)
+              projectiles.splice(projIndex, 1)
+              invaderDestroyedAudio.play()
             }
 
             // re-adjusting grid when destroying invaders
             if (grid.invaders.length > 0) {
-              const firstInvader = grid.invaders[0]
-              const lastInvader = grid.invaders[grid.invaders.length - 1]
-              grid.width = lastInvader.position.x - firstInvader.position.x + lastInvader.width
-              grid.position.x = firstInvader.position.x
+              const firstInv = grid.invaders[0]
+              const lastInv = grid.invaders[grid.invaders.length - 1]
+              grid.width = lastInv.position.x - firstInv.position.x + lastInv.width
+              grid.position.x = firstInv.position.x
               }
               else {
                 grids.splice(gridIndex, 1)
@@ -310,12 +354,12 @@ function animate() {
           }, 0)
         }
     })
-
   })
 
-  // Bound Checking and Moving player within canvas and around enemies
-  const leftEdge = 0;
-  const rightEdge = canvas.width
+
+  // Bound Checking and Moving player within canvas
+  const leftEdge = 0; // left edge of canvas
+  const rightEdge = canvas.width // right edge of canvas
   const speed = 4
 
   if(keys.ArrowLeft.pressed && player.position.x > leftEdge) {
@@ -328,5 +372,12 @@ function animate() {
     player.velocity.x = 0
   }
 }
-// Run Game
+
+resetBtn.addEventListener('click', resetGame)
+
+function resetGame() {
+  window.location.reload()
+}
+
 animate()
+
