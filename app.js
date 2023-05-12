@@ -5,14 +5,18 @@ const ctx = canvas.getContext('2d') // api object
 canvas.width = innerWidth  // window.innerWidth
 canvas.height = innerHeight // window.innerHeight
 
-const scoreEl = document.getElementById('score')
+const startBtn = document.getElementById('start')
 const resetBtn = document.getElementById('reset')
+const playAgainBtn = document.getElementById('play-again')
+
 const playerShootAudio = new Audio('audio/mixkit-sci-fi-battle-laser-shots-2783.wav')
 playerShootAudio.playbackRate = 16.0
 const invaderDestroyedAudio = new Audio('audio/76H365G-explosion.mp3')
 invaderDestroyedAudio.playbackRate = 16.0
 
-const gameOverModal = document.querySelector('div')
+const startGameModal = document.getElementById('start-game')
+const gameOverModal = document.getElementById('game-over')
+const playerWinsModal = document.getElementById('player-wins')
 
 /*------Creating Player and Setting Position------*/
 class Player {
@@ -104,14 +108,12 @@ class Invader {
       y: 0
     }
 
-    //const invaderImage = document.getElementsByClassName('.space-invader-2')
-
     // Image for invader icon
     const image = new Image()
     image.src = 'img/space-invaders-color-version-space-invader-dark-blue-icon-png-icon.jpg';
 
     image.onload = () => { //
-      const scale = .10 // multiplier for scaling
+      const scale = .08 // multiplier for scaling
       this.image = image
       this.width = image.width * scale 
       this.height = image.height * scale
@@ -141,13 +143,13 @@ class Invader {
       this.position.y += velocity.y
 
       if ( 
-        (this.position.y + this.height) - 70 >= player.position.y &&
-        this.position.x + this.width >= player.position.x &&
+        this.position.y + this.height - 70 >= player.position.y && // Bottom of invader image is greater than top of player image
+        this.position.x + this.width >= player.position.x && // right side of invader image is greater than or equal to left side of player
         this.position.x <= player.position.x + player.width
       )
       {
-       gameOver = true // ends game
-       gameOverModal.style.display = 'block'
+        gameOver = true // ends game
+        gameOverModal.style.display = 'block'
       }
     }
   }
@@ -159,10 +161,10 @@ class Grid {
   constructor() {
     this.position = {
       x: 0,
-      y:0
+      y: 0
     }
     this.velocity = {
-      x: 3,
+      x: 10,
       y: 0
     }
     this.invaders = [] // storing invaders in grid array
@@ -192,7 +194,7 @@ class Grid {
     this.position.y += this.velocity.y
     this.velocity.y = 0 // prevents grid from moving vertically on every frame
 
-    if (this.position.x + this.width >= canvas.width || this.position.x <= 0) {
+    if (this.position.x + this.width >= canvas.width + 70 || this.position.x <= 0) {
       this.velocity.x = -this.velocity.x
       this.velocity.y = 70
     }
@@ -212,10 +214,25 @@ class InvaderProjectile {
 
     this.projectiles = []
   }
+
+  render() {
+    ctx.beginPath() // starting point of arc
+    ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2) // Creates a circle using arc method in canvas
+    ctx.fillStyle = 'red'
+    ctx.fill()
+    ctx.closePath() // ending point of arc
+  }
+
+  update() {
+    this.render()
+    this.position.x += this.velocity.x
+    this.position.y += this.velocity.y
+  }
 }
 
 /*------Constants------*/
 const projectiles = []
+const invaderProjectiles = []
 const player = new Player()
 const grid = new Grid()
 let gameOver = false
@@ -255,11 +272,13 @@ addEventListener('keydown', ({key}) => { // {key} === event.key
           },
           velocity: {
             x: 0,
-            y: -4
+            y: -15
           }
         })
       )
-      playerShootAudio.play()
+      if (!gameOver) {
+        playerShootAudio.play()
+      }
   }
 })
 
@@ -277,7 +296,19 @@ addEventListener('keyup', ({key}) => { // {key} === event.key
   }
 })
 
-/*------Rendering Player and Projectile on Webpage------*/
+/*------Event Listener for Reset Button------*/
+startBtn.addEventListener('click', startGame)
+resetBtn.addEventListener('click', resetGame)
+playAgainBtn.addEventListener('click', playAgain)
+
+function playAgain() {
+  window.location.reload()
+}
+
+function startGame() {
+  startGameModal.style.display = 'none'
+  animate()
+}
 
 // Loop to render player
 function animate() {
@@ -285,9 +316,15 @@ function animate() {
 
   if (gameOver) return // Breaks out of animation loop
 
-  // Default Background color for player image
-  ctx.fillStyle = 'black'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  if (grid.invaders.length === 0) {
+    // win condition for when player destroys all invaders
+    playerWinsModal.style.display = 'block'
+    return
+  }
+
+  // Default Background color for canvas
+  //ctx.fillStyle = 'black'
+  //ctx.fillRect(0, 0, canvas.width, canvas.height)
 
   // render player and position in canvas
   player.update()
@@ -315,6 +352,8 @@ function animate() {
   grid.invaders.forEach((invader, invIndex) => {
     invader.update({velocity: grid.velocity}) // grid velocity is applied to each invader's velocity
 
+    // invaders shoot at player here
+
     projectiles.forEach((projectile, projIndex) => {
       if (
         // if top of projectile is less than or equal to the bottom of invader and
@@ -333,9 +372,7 @@ function animate() {
             )
 
             // remove invaders and projectiles
-            if (containsInvader && containsProjectile) { // checks to see if invaders and projectiles gone used exist at the current index in arrays
-              //score += 1000
-              //scoreEl.innerHTML = score
+            if (containsInvader && containsProjectile) { // checks to see if invaders and projectiles used exist at the current index in arrays
               grid.invaders.splice(invIndex, 1)
               projectiles.splice(projIndex, 1)
               invaderDestroyedAudio.play()
@@ -373,11 +410,9 @@ function animate() {
   }
 }
 
-resetBtn.addEventListener('click', resetGame)
+//animate()
 
 function resetGame() {
   window.location.reload()
 }
-
-animate()
 

@@ -2,6 +2,7 @@ body {
 	height: 100%;
 	width: 100%;
 	margin: 0;
+	padding: 0;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -16,7 +17,25 @@ canvas {
 	align-items: center;
 }
 
-div {
+#start-game {
+	position: absolute;
+	height: 50%;
+	width: 50%;
+	position: absolute;
+	background-color: white;
+	text-align: center; 
+}
+
+#player-wins {
+	display: none;
+	position: absolute;
+	height: 50%;
+	width: 50%;
+	background-color: white;
+	text-align: center; 
+}
+
+#game-over {
 	display: none;
 	height: 50%;
 	width: 50%;
