@@ -4,5 +4,5 @@
     Player wins by destroying all invaders or loses if invaders touch player.
 </p>
 <h2>Getting Started</h2>
-<p><a href="file:///Users/avarymitchell/portfolio-projects/projects/unit-1-project/index.html">Launch Game<a></p>
+<p><a href="file:///Users/avarymitchell/portfolio-projects/projects/unit-1-project/index.html">Launch Game</a></p>
 
