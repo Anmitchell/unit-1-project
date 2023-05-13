@@ -111,5 +111,7 @@
     <li>More stages or levels</li>
     <li>Player Projectile Power Ups</li>
     <li>Boss Battle</li>
+    <li>Controls Modal</li>
+    <li>Backstory</li>
 </ol>
 
