@@ -4,5 +4,13 @@
     Player wins by destroying all invaders or loses if invaders touch player.
 </p>
 <h2>Getting Started</h2>
-<p><a href="file:///Users/avarymitchell/portfolio-projects/projects/unit-1-project/index.html" target="_blank">Launch Game</a></p>
+<h4><a href="file:///Users/avarymitchell/portfolio-projects/projects/unit-1-project/index.html" target="_blank">Launch Game</a></h4>
+<p>Future Updates:</p>
+<ol>
+    <li>Fixing Audio</li>
+    <li>Allowing only the row of invaders without another invader in front to shoot</li>
+    <li>Smoother ingame visuals</li>
+    <li>Moving stars in space</li>
+    <li>Image manipulation</li>
+</ol>
 
