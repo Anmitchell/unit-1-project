@@ -8,9 +8,14 @@
 <p>Future Updates:</p>
 <ol>
     <li>Fixing Audio</li>
-    <li>Allowing only the row of invaders without another invader in front to shoot</li>
+    <li>Allowing only the row of invaders without another invader in front to shoot player</li>
     <li>Smoother ingame visuals</li>
     <li>Moving stars in space</li>
     <li>Image manipulation</li>
+    <li>Improved visuals and styling</li>
+    <li>Score System</li>
+    <li>More stages or levels</li>
+    <li>Player Projectile Power Ups</li>
+    <li>Boss Battle</li>
 </ol>
 
