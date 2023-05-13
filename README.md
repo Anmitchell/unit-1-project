@@ -4,7 +4,8 @@
     Player wins by destroying all invaders or loses if invaders touch player.
 </p>
 <h2>Getting Started</h2>
-<h4><a href="file:///Users/avarymitchell/portfolio-projects/projects/unit-1-project/index.html" target="_blank">Launch Game</a></h4>
+<p>Move Player using left and right Arrow Keys. Shoot using spacebar. Try to eliminate Invaders</p>
+<h3><a href="https://anmitchell.github.io/unit-1-project/" target="_blank">Launch Game</a><h3>
 <p>Future Updates:</p>
 <ol>
     <li>Fixing Audio</li>
