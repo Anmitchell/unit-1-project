@@ -174,7 +174,7 @@ class Fleet {
       y: 0
     }
     this.velocity = {
-      x: 7,
+      x: 6,
       y: 0
     }
 
@@ -307,7 +307,7 @@ addEventListener('keyup', ({key}) => { // {key} === event.key
   }
 })
 
-/*------Event Listener for Modal Buttons------*/
+/*------Event Listeners for Modal Buttons------*/
 startBtn.addEventListener('click', startGame)
 resetBtn.addEventListener('click', resetGame)
 playAgainBtn.addEventListener('click', playAgain)
